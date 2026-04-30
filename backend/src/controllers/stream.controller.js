@@ -1,6 +1,19 @@
 const Booking = require('../models/Booking');
+const Barber = require('../models/Barber');
 
 const streamQueue = async (req, res) => {
+  let scopeFilter = {};
+
+  if (req.user.role === 'client') {
+    scopeFilter = { clientId: req.user._id };
+  } else if (req.user.role === 'barber') {
+    const barber = await Barber.findOne({ userId: req.user._id });
+    if (!barber) {
+      return res.status(404).json({ success: false, message: 'Barber profile not found' });
+    }
+    scopeFilter = { barberId: barber._id };
+  }
+
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
@@ -15,8 +28,9 @@ const streamQueue = async (req, res) => {
       endOfToday.setDate(endOfToday.getDate() + 1);
 
       const bookings = await Booking.find({
+        ...scopeFilter,
         startTime: { $gte: startOfToday, $lt: endOfToday },
-        status: { $in: ['pending', 'confirmed'] },
+        status: { $in: ['pending', 'confirmed', 'in_progress'] },
       })
         .populate('clientId', 'name avatar')
         .populate({ path: 'barberId', populate: { path: 'userId', select: 'name' } })

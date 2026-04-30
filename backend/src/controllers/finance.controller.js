@@ -5,11 +5,18 @@ const Barber = require('../models/Barber');
 const Service = require('../models/Service');
 const User = require('../models/User');
 
-const expenseSchema = Joi.object({
+const expenseFields = {
   description: Joi.string().min(2).max(200).required(),
   amount: Joi.number().min(0).required(),
   date: Joi.date().iso(),
+};
+
+const createExpenseSchema = Joi.object({
+  ...expenseFields,
+  barberId: Joi.string(),
 });
+
+const updateExpenseSchema = Joi.object(expenseFields);
 
 const getFinanceStats = async (req, res) => {
   try {
@@ -93,7 +100,7 @@ const getFinanceStats = async (req, res) => {
 
 const createExpense = async (req, res) => {
   try {
-    const { error, value } = expenseSchema.validate(req.body);
+    const { error, value } = createExpenseSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ success: false, message: error.details[0].message });
     }
@@ -105,13 +112,18 @@ const createExpense = async (req, res) => {
         return res.status(404).json({ success: false, message: 'Barber profile not found' });
       }
       barberId = barber._id;
-    } else if (req.body.barberId) {
-      barberId = req.body.barberId;
+    } else if (value.barberId) {
+      const barber = await Barber.findById(value.barberId);
+      if (!barber) {
+        return res.status(404).json({ success: false, message: 'Barber not found' });
+      }
+      barberId = value.barberId;
     } else {
       return res.status(400).json({ success: false, message: 'barberId is required for admin' });
     }
 
-    const expense = await Expense.create({ ...value, barberId });
+    const { barberId: _ignored, ...expenseData } = value;
+    const expense = await Expense.create({ ...expenseData, barberId });
     return res.status(201).json({ success: true, data: expense });
   } catch (error) {
     console.error('CreateExpense error:', error);
@@ -121,7 +133,7 @@ const createExpense = async (req, res) => {
 
 const updateExpense = async (req, res) => {
   try {
-    const { error, value } = expenseSchema.validate(req.body);
+    const { error, value } = updateExpenseSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ success: false, message: error.details[0].message });
     }

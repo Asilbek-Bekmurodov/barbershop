@@ -1,6 +1,5 @@
 require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
 const User = require('../models/User');
 const Barber = require('../models/Barber');
@@ -29,15 +28,11 @@ const seed = async () => {
   await clearDB();
 
   // ==================== USERS ====================
-  const hashedAdmin = await bcrypt.hash('admin123', 10);
-  const hashedBarber = await bcrypt.hash('barber123', 10);
-  const hashedClient = await bcrypt.hash('client123', 10);
-
   // Admin
   const admin = await User.create({
     name: 'Admin User',
     email: 'admin@gmail.com',
-    password: hashedAdmin,
+    password: 'admin123',
     role: 'admin',
     styleCoins: 0,
   });
@@ -46,7 +41,7 @@ const seed = async () => {
   const barberUser1 = await User.create({
     name: 'Jasur Karimov',
     email: 'jasur@trimflow.com',
-    password: hashedBarber,
+    password: 'barber123',
     role: 'barber',
     avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
   });
@@ -54,7 +49,7 @@ const seed = async () => {
   const barberUser2 = await User.create({
     name: 'Bobur Toshmatov',
     email: 'bobur@trimflow.com',
-    password: hashedBarber,
+    password: 'barber123',
     role: 'barber',
     avatar: 'https://randomuser.me/api/portraits/men/2.jpg',
   });
@@ -62,7 +57,7 @@ const seed = async () => {
   const barberUser3 = await User.create({
     name: 'Sanjar Yusupov',
     email: 'sanjar@trimflow.com',
-    password: hashedBarber,
+    password: 'barber123',
     role: 'barber',
     avatar: 'https://randomuser.me/api/portraits/men/3.jpg',
   });
@@ -71,7 +66,7 @@ const seed = async () => {
   const client1 = await User.create({
     name: 'Alisher Nazarov',
     email: 'alisher@client.com',
-    password: hashedClient,
+    password: 'client123',
     role: 'client',
     styleCoins: 50,
   });
@@ -79,7 +74,7 @@ const seed = async () => {
   const client2 = await User.create({
     name: 'Dilshod Rahimov',
     email: 'dilshod@client.com',
-    password: hashedClient,
+    password: 'client123',
     role: 'client',
     styleCoins: 30,
   });
@@ -87,7 +82,7 @@ const seed = async () => {
   const client3 = await User.create({
     name: 'Kamol Ergashev',
     email: 'kamol@client.com',
-    password: hashedClient,
+    password: 'client123',
     role: 'client',
     styleCoins: 20,
   });

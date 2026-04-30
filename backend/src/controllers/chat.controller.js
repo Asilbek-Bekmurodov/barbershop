@@ -10,6 +10,8 @@ const chatSchema = Joi.object({
   message: Joi.string().min(1).max(2000).required(),
 });
 
+const ACTIVE_BOOKING_STATUSES = ['pending', 'confirmed', 'in_progress'];
+
 const MOCK_RESPONSE = {
   reply: "Salom! Men TrimFlow yordamchisiman. Sizga qanday yordam bera olaman? Sartarosh haqida ma'lumot olish, bron qilish yoki xizmatlar haqida so'rashingiz mumkin.",
   bookings: [],
@@ -58,6 +60,39 @@ const callOpenRouter = async (messages) => {
     req.write(payload);
     req.end();
   });
+};
+
+const buildBookingProposal = async (bookingInput) => {
+  const service = await Service.findById(bookingInput.serviceId).lean();
+  if (!service || service.barberId.toString() !== bookingInput.barberId) return null;
+
+  const barber = await Barber.findById(bookingInput.barberId)
+    .populate('userId', 'name avatar')
+    .lean();
+  if (!barber || !barber.isVerified) return null;
+
+  const startDate = new Date(bookingInput.startTime);
+  if (Number.isNaN(startDate.getTime()) || startDate <= new Date()) return null;
+
+  const endDate = new Date(startDate.getTime() + service.duration * 60 * 1000);
+
+  const overlap = await Booking.findOne({
+    barberId: bookingInput.barberId,
+    status: { $in: ACTIVE_BOOKING_STATUSES },
+    $or: [{ startTime: { $lt: endDate }, endTime: { $gt: startDate } }],
+  }).lean();
+
+  if (overlap) return null;
+
+  return {
+    barberId: barber._id.toString(),
+    barberName: barber.userId?.name || 'Barber',
+    serviceId: service._id.toString(),
+    serviceName: service.name,
+    price: service.price,
+    startTime: startDate.toISOString(),
+    endTime: endDate.toISOString(),
+  };
 };
 
 const chat = async (req, res) => {
@@ -166,50 +201,15 @@ bookings va coin_transactions massivlari faqat zarur bo'lganda to'ldirilsin.`;
 
     const { reply, bookings = [], coin_transactions = [], recommendations = [] } = llmResponse;
 
-    // Auto-create bookings if LLM suggested them
-    const createdBookings = [];
+    // LLM output is treated as a proposal only. Writes require a normal,
+    // authenticated booking API call from the user.
+    const proposedBookings = [];
     for (const b of bookings) {
       try {
-        const service = await Service.findById(b.serviceId);
-        if (!service) continue;
-
-        const startDate = new Date(b.startTime);
-        const endDate = new Date(startDate.getTime() + service.duration * 60 * 1000);
-
-        const overlap = await Booking.findOne({
-          barberId: b.barberId,
-          status: { $in: ['pending', 'confirmed'] },
-          $or: [{ startTime: { $lt: endDate }, endTime: { $gt: startDate } }],
-        });
-
-        if (overlap) continue;
-
-        const newBooking = await Booking.create({
-          clientId: userId,
-          barberId: b.barberId,
-          serviceId: b.serviceId,
-          startTime: startDate,
-          endTime: endDate,
-        });
-        createdBookings.push(newBooking);
-
-        const io = req.app.get('io');
-        if (io) io.emit('booking:new', newBooking);
+        const proposal = await buildBookingProposal(b);
+        if (proposal) proposedBookings.push(proposal);
       } catch (bookingErr) {
-        console.error('Auto-booking error:', bookingErr.message);
-      }
-    }
-
-    // Process coin transactions
-    for (const ct of coin_transactions) {
-      try {
-        if (ct.amount && ct.userId) {
-          await User.findByIdAndUpdate(ct.userId, {
-            $inc: { styleCoins: ct.amount },
-          });
-        }
-      } catch (coinErr) {
-        console.error('Coin transaction error:', coinErr.message);
+        console.error('Booking proposal error:', bookingErr.message);
       }
     }
 
@@ -218,14 +218,15 @@ bookings va coin_transactions massivlari faqat zarur bo'lganda to'ldirilsin.`;
       userId,
       role: 'assistant',
       content: reply,
-      metadata: { bookings: createdBookings, coin_transactions, recommendations },
+      metadata: { proposedBookings, ignoredCoinTransactions: coin_transactions, recommendations },
     });
 
     return res.status(200).json({
       success: true,
       data: {
         message: assistantMsg,
-        createdBookings,
+        createdBookings: [],
+        proposedBookings,
         recommendations,
       },
     });

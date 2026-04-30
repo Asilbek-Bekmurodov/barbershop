@@ -27,7 +27,7 @@ const bookingSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'confirmed', 'completed', 'cancelled'],
+      enum: ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'],
       default: 'pending',
     },
     styleCoinEarned: {
@@ -41,6 +41,16 @@ const bookingSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+  }
+);
+
+bookingSchema.index(
+  { barberId: 1, startTime: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      status: { $in: ['pending', 'confirmed', 'in_progress'] },
+    },
   }
 );
 

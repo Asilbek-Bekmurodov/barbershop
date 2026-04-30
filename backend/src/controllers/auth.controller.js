@@ -8,11 +8,19 @@ const generateToken = (id) => {
   });
 };
 
+const serializeUser = (user) => ({
+  id: user._id.toString(),
+  name: user.name,
+  email: user.email,
+  role: user.role,
+  avatar: user.avatar,
+  styleCoins: user.styleCoins,
+});
+
 const registerSchema = Joi.object({
   name: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
-  role: Joi.string().valid('admin', 'barber', 'client').default('client'),
 });
 
 const loginSchema = Joi.object({
@@ -22,7 +30,7 @@ const loginSchema = Joi.object({
 
 const register = async (req, res) => {
   try {
-    const { error, value } = registerSchema.validate(req.body);
+    const { error, value } = registerSchema.validate(req.body, { stripUnknown: true });
     if (error) {
       return res.status(400).json({
         success: false,
@@ -30,7 +38,7 @@ const register = async (req, res) => {
       });
     }
 
-    const { name, email, password, role } = value;
+    const { name, email, password } = value;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -40,19 +48,14 @@ const register = async (req, res) => {
       });
     }
 
-    const user = await User.create({ name, email, password, role });
+    const user = await User.create({ name, email, password, role: 'client' });
 
     const token = generateToken(user._id);
 
     return res.status(201).json({
       success: true,
       data: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-        styleCoins: user.styleCoins,
+        user: serializeUser(user),
         token,
       },
     });
@@ -105,12 +108,7 @@ const login = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-        styleCoins: user.styleCoins,
+        user: serializeUser(user),
         token,
       },
     });

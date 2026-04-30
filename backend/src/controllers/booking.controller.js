@@ -4,6 +4,8 @@ const Service = require('../models/Service');
 const Barber = require('../models/Barber');
 const User = require('../models/User');
 
+const ACTIVE_BOOKING_STATUSES = ['pending', 'confirmed', 'in_progress'];
+
 const createBookingSchema = Joi.object({
   barberId: Joi.string().required(),
   serviceId: Joi.string().required(),
@@ -11,8 +13,94 @@ const createBookingSchema = Joi.object({
 });
 
 const updateStatusSchema = Joi.object({
-  status: Joi.string().valid('pending', 'confirmed', 'completed', 'cancelled').required(),
+  status: Joi.string().valid('pending', 'confirmed', 'in_progress', 'completed', 'cancelled').required(),
 });
+
+const getObjectId = (value) => {
+  if (!value) return null;
+  if (value._id) return value._id.toString();
+  return value.toString();
+};
+
+const parseTimeToMinutes = (time) => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+const isInsideWorkingHours = (barber, startDate, endDate) => {
+  if (startDate.toDateString() !== endDate.toDateString()) return false;
+
+  const workingStart = parseTimeToMinutes(barber.workingHours.start);
+  const workingEnd = parseTimeToMinutes(barber.workingHours.end);
+  const bookingStart = startDate.getHours() * 60 + startDate.getMinutes();
+  const bookingEnd = endDate.getHours() * 60 + endDate.getMinutes();
+
+  return bookingStart >= workingStart && bookingEnd <= workingEnd;
+};
+
+const emitBookingEvent = (req, eventName, booking) => {
+  const io = req.app.get('io');
+  if (!io || !booking) return;
+
+  const barberId = getObjectId(booking.barberId);
+  const clientId = getObjectId(booking.clientId);
+
+  if (barberId) io.to(`barber:${barberId}`).emit(eventName, booking);
+  if (clientId) io.to(`client:${clientId}`).emit(eventName, booking);
+  io.to('admin').emit(eventName, booking);
+};
+
+const getMyBarber = async (userId) => Barber.findOne({ userId });
+
+const canBarberTransition = (fromStatus, toStatus) => {
+  const transitions = {
+    pending: ['confirmed', 'in_progress', 'cancelled'],
+    confirmed: ['in_progress', 'completed', 'cancelled'],
+    in_progress: ['completed', 'cancelled'],
+    completed: [],
+    cancelled: [],
+  };
+
+  return transitions[fromStatus]?.includes(toStatus) || false;
+};
+
+const assertCanUpdateStatus = async (req, booking, nextStatus) => {
+  if (req.user.role === 'admin') return { allowed: true };
+
+  if (req.user.role === 'client') {
+    const ownsBooking = booking.clientId.toString() === req.user._id.toString();
+    if (!ownsBooking) return { allowed: false, status: 403, message: 'Not authorized' };
+
+    const canCancel = nextStatus === 'cancelled' && ['pending', 'confirmed'].includes(booking.status);
+    if (!canCancel) {
+      return {
+        allowed: false,
+        status: 400,
+        message: 'Clients can only cancel their own pending or confirmed bookings',
+      };
+    }
+
+    return { allowed: true };
+  }
+
+  if (req.user.role === 'barber') {
+    const barber = await getMyBarber(req.user._id);
+    const ownsBooking = barber && booking.barberId.toString() === barber._id.toString();
+    if (!ownsBooking) return { allowed: false, status: 403, message: 'Not authorized' };
+
+    if (!canBarberTransition(booking.status, nextStatus)) {
+      return {
+        allowed: false,
+        status: 400,
+        message: `Cannot change booking status from ${booking.status} to ${nextStatus}`,
+      };
+    }
+
+    return { allowed: true };
+  }
+
+  return { allowed: false, status: 403, message: 'Not authorized' };
+};
 
 const getBookings = async (req, res) => {
   try {
@@ -67,6 +155,15 @@ const createBooking = async (req, res) => {
 
     const { barberId, serviceId, startTime } = value;
 
+    const barber = await Barber.findById(barberId);
+    if (!barber) {
+      return res.status(404).json({ success: false, message: 'Barber not found' });
+    }
+
+    if (!barber.isVerified) {
+      return res.status(400).json({ success: false, message: 'Barber is not verified for bookings' });
+    }
+
     const service = await Service.findById(serviceId);
     if (!service) {
       return res.status(404).json({ success: false, message: 'Service not found' });
@@ -79,10 +176,18 @@ const createBooking = async (req, res) => {
     const startDate = new Date(startTime);
     const endDate = new Date(startDate.getTime() + service.duration * 60 * 1000);
 
+    if (startDate <= new Date()) {
+      return res.status(400).json({ success: false, message: 'Booking time must be in the future' });
+    }
+
+    if (!isInsideWorkingHours(barber, startDate, endDate)) {
+      return res.status(400).json({ success: false, message: 'Booking time is outside barber working hours' });
+    }
+
     // Double booking check: prevent overlapping appointments
     const overlap = await Booking.findOne({
       barberId,
-      status: { $in: ['pending', 'confirmed'] },
+      status: { $in: ACTIVE_BOOKING_STATUSES },
       $or: [
         { startTime: { $lt: endDate }, endTime: { $gt: startDate } },
       ],
@@ -95,24 +200,31 @@ const createBooking = async (req, res) => {
       });
     }
 
-    const booking = await Booking.create({
-      clientId: req.user._id,
-      barberId,
-      serviceId,
-      startTime: startDate,
-      endTime: endDate,
-    });
+    let booking;
+    try {
+      booking = await Booking.create({
+        clientId: req.user._id,
+        barberId,
+        serviceId,
+        startTime: startDate,
+        endTime: endDate,
+      });
+    } catch (error) {
+      if (error.code === 11000) {
+        return res.status(409).json({
+          success: false,
+          message: 'This time slot is already booked. Please choose another time.',
+        });
+      }
+      throw error;
+    }
 
     const populatedBooking = await Booking.findById(booking._id)
       .populate('clientId', 'name email avatar')
       .populate({ path: 'barberId', populate: { path: 'userId', select: 'name email avatar' } })
       .populate('serviceId');
 
-    // Emit Socket.io event
-    const io = req.app.get('io');
-    if (io) {
-      io.emit('booking:new', populatedBooking);
-    }
+    emitBookingEvent(req, 'booking:new', populatedBooking);
 
     return res.status(201).json({ success: true, data: populatedBooking });
   } catch (error) {
@@ -133,16 +245,9 @@ const updateBookingStatus = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Booking not found' });
     }
 
-    // Authorization check
-    if (req.user.role === 'client' && booking.clientId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: 'Not authorized' });
-    }
-
-    if (req.user.role === 'barber') {
-      const barber = await Barber.findOne({ userId: req.user._id });
-      if (!barber || booking.barberId.toString() !== barber._id.toString()) {
-        return res.status(403).json({ success: false, message: 'Not authorized' });
-      }
+    const auth = await assertCanUpdateStatus(req, booking, value.status);
+    if (!auth.allowed) {
+      return res.status(auth.status).json({ success: false, message: auth.message });
     }
 
     const previousStatus = booking.status;
@@ -162,11 +267,7 @@ const updateBookingStatus = async (req, res) => {
       .populate({ path: 'barberId', populate: { path: 'userId', select: 'name email avatar' } })
       .populate('serviceId');
 
-    // Emit Socket.io event
-    const io = req.app.get('io');
-    if (io) {
-      io.emit('booking:update', updatedBooking);
-    }
+    emitBookingEvent(req, 'booking:update', updatedBooking);
 
     return res.status(200).json({ success: true, data: updatedBooking });
   } catch (error) {
@@ -182,16 +283,18 @@ const deleteBooking = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Booking not found' });
     }
 
-    if (req.user.role === 'client' && booking.clientId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: 'Not authorized' });
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Only admins can delete bookings' });
     }
 
     await Booking.findByIdAndDelete(req.params.id);
 
-    const io = req.app.get('io');
-    if (io) {
-      io.emit('booking:update', { _id: req.params.id, status: 'deleted' });
-    }
+    emitBookingEvent(req, 'booking:update', {
+      _id: req.params.id,
+      clientId: booking.clientId,
+      barberId: booking.barberId,
+      status: 'deleted',
+    });
 
     return res.status(200).json({ success: true, data: {} });
   } catch (error) {

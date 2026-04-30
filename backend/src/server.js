@@ -4,7 +4,10 @@ const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
 const passport = require('passport');
+const jwt = require('jsonwebtoken');
 const connectDB = require('./config/db');
+const User = require('./models/User');
+const Barber = require('./models/Barber');
 require('./config/passport');
 
 // Import routes
@@ -88,15 +91,68 @@ app.use((err, req, res, next) => {
 });
 
 // Socket.io connection handling
+io.use(async (socket, next) => {
+  try {
+    const authHeader = socket.handshake.headers.authorization;
+    let token = socket.handshake.auth?.token;
+
+    if (!token && authHeader?.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    }
+
+    if (!token) {
+      return next(new Error('Unauthorized'));
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user || user.isBlocked) {
+      return next(new Error('Unauthorized'));
+    }
+
+    socket.user = user;
+    return next();
+  } catch (error) {
+    return next(new Error('Unauthorized'));
+  }
+});
+
 io.on('connection', (socket) => {
   console.log(`Socket connected: ${socket.id}`);
 
-  socket.on('join:barber', (barberId) => {
+  socket.join(`client:${socket.user._id}`);
+  if (socket.user.role === 'admin') {
+    socket.join('admin');
+  }
+
+  socket.on('join:barber', async (barberId) => {
+    if (socket.user.role === 'admin') {
+      socket.join(`barber:${barberId}`);
+      return;
+    }
+
+    if (socket.user.role !== 'barber') {
+      socket.emit('room:error', { message: 'Not authorized for this barber room' });
+      return;
+    }
+
+    const barber = await Barber.findOne({ userId: socket.user._id });
+    if (!barber || barber._id.toString() !== barberId) {
+      socket.emit('room:error', { message: 'Not authorized for this barber room' });
+      return;
+    }
+
     socket.join(`barber:${barberId}`);
     console.log(`Socket ${socket.id} joined barber:${barberId}`);
   });
 
   socket.on('join:client', (clientId) => {
+    if (socket.user.role !== 'admin' && socket.user._id.toString() !== clientId) {
+      socket.emit('room:error', { message: 'Not authorized for this client room' });
+      return;
+    }
+
     socket.join(`client:${clientId}`);
     console.log(`Socket ${socket.id} joined client:${clientId}`);
   });
