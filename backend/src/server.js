@@ -21,6 +21,7 @@ const adminRoutes = require('./routes/admin.routes');
 const chatRoutes = require('./routes/chat.routes');
 const streamRoutes = require('./routes/stream.routes');
 const healthRoutes = require('./routes/health.routes');
+const setupSwagger = require('./config/swagger');
 
 const app = express();
 const server = http.createServer(app);
@@ -63,6 +64,9 @@ app.options('/*splat', cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
+
+// Swagger API docs
+setupSwagger(app);
 
 // Routes
 app.use('/api/auth', authRoutes);

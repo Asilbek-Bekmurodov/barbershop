@@ -1,0 +1,711 @@
+{
+	"info": {
+		"_postman_id": "trimflow-barbershop-api",
+		"name": "TrimFlow Barbershop API",
+		"description": "Complete API collection for TrimFlow Barbershop platform.\n\n## Setup\n1. Set `base_url` variable to your server URL (default: http://localhost:5001)\n2. Register/Login to get a token — it auto-saves to `token` variable\n3. Use folders to test each module\n\n## Auth Flow\n- Register → Login → Use token in all protected routes",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5001",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "barber_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "service_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "booking_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "expense_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "🏥 Health",
+			"item": [
+				{
+					"name": "Ping",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/health",
+							"host": ["{{base_url}}"],
+							"path": ["api", "health"]
+						},
+						"description": "Health check endpoint. No auth required."
+					}
+				}
+			]
+		},
+		{
+			"name": "🔐 Auth",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const res = pm.response.json();",
+									"    pm.collectionVariables.set('token', res.data.token);",
+									"    pm.collectionVariables.set('user_id', res.data.user.id);",
+									"    pm.test('Registration successful', () => {",
+									"        pm.expect(res.success).to.be.true;",
+									"        pm.expect(res.data.token).to.be.a('string');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "register"]
+						},
+						"description": "Register a new user. Returns JWT token.\n\n**Body:**\n- `name` (string, 2-50 chars, required)\n- `email` (string, valid email, required)\n- `password` (string, min 6 chars, required)"
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const res = pm.response.json();",
+									"    pm.collectionVariables.set('token', res.data.token);",
+									"    pm.collectionVariables.set('user_id', res.data.user.id);",
+									"    pm.test('Login successful', () => {",
+									"        pm.expect(res.success).to.be.true;",
+									"        pm.expect(res.data.token).to.be.a('string');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Login with email and password. Returns JWT token.\n\n**Body:**\n- `email` (string, required)\n- `password` (string, required)"
+					}
+				},
+				{
+					"name": "Google OAuth",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/auth/google",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "google"]
+						},
+						"description": "Initiates Google OAuth flow. Open in browser — redirects to Google login."
+					}
+				}
+			]
+		},
+		{
+			"name": "👤 Users",
+			"item": [
+				{
+					"name": "Get My Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/me",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "me"]
+						},
+						"description": "Get current authenticated user's profile.\n\n**Auth:** Bearer token required"
+					}
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Name\",\n    \"avatar\": \"https://example.com/avatar.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/profile",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "profile"]
+						},
+						"description": "Update current user's profile.\n\n**Body:**\n- `name` (string, 2-50 chars, optional)\n- `avatar` (string, valid URI, optional)"
+					}
+				},
+				{
+					"name": "Delete My Account",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/me",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "me"]
+						},
+						"description": "Delete current user's account permanently.\n\n**Auth:** Bearer token required\n\n⚠️ **Irreversible action!**"
+					}
+				}
+			]
+		},
+		{
+			"name": "💈 Barbers",
+			"item": [
+				{
+					"name": "Get All Barbers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const res = pm.response.json();",
+									"    if (res.data && res.data.length > 0) {",
+									"        pm.collectionVariables.set('barber_id', res.data[0]._id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/barbers",
+							"host": ["{{base_url}}"],
+							"path": ["api", "barbers"]
+						},
+						"description": "Get all barbers with user info populated.\n\n**Auth:** Not required (public)"
+					}
+				},
+				{
+					"name": "Get Barber by ID",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/barbers/{{barber_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "barbers", "{{barber_id}}"]
+						},
+						"description": "Get a specific barber by ID.\n\n**Auth:** Not required (public)"
+					}
+				},
+				{
+					"name": "Create Barber (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"{{user_id}}\",\n    \"bio\": \"Professional barber with 5 years experience\",\n    \"workingHours\": {\n        \"start\": \"09:00\",\n        \"end\": \"18:00\"\n    },\n    \"portfolio\": []\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/barbers",
+							"host": ["{{base_url}}"],
+							"path": ["api", "barbers"]
+						},
+						"description": "Create a new barber profile. Admin only.\n\n**Body:**\n- `userId` (string, required) — ID of existing user\n- `bio` (string, max 500, optional)\n- `workingHours` (object, optional) — `start` and `end` in HH:MM\n- `portfolio` (array of URIs, optional)"
+					}
+				},
+				{
+					"name": "Update My Barber Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bio\": \"Updated bio text\",\n    \"workingHours\": {\n        \"start\": \"10:00\",\n        \"end\": \"20:00\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/barbers/me",
+							"host": ["{{base_url}}"],
+							"path": ["api", "barbers", "me"]
+						},
+						"description": "Update own barber profile.\n\n**Auth:** Barber or Admin role required"
+					}
+				},
+				{
+					"name": "Delete Barber (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/barbers/{{barber_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "barbers", "{{barber_id}}"]
+						},
+						"description": "Delete a barber profile. Admin only."
+					}
+				}
+			]
+		},
+		{
+			"name": "✂️ Services",
+			"item": [
+				{
+					"name": "Get Services by Barber",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const res = pm.response.json();",
+									"    if (res.data && res.data.length > 0) {",
+									"        pm.collectionVariables.set('service_id', res.data[0]._id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/services/{{barber_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "services", "{{barber_id}}"]
+						},
+						"description": "Get all services for a specific barber.\n\n**Auth:** Not required (public)"
+					}
+				},
+				{
+					"name": "Create Service",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const res = pm.response.json();",
+									"    pm.collectionVariables.set('service_id', res.data._id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"barberId\": \"{{barber_id}}\",\n    \"name\": \"Classic Haircut\",\n    \"price\": 50000,\n    \"duration\": 30,\n    \"description\": \"Classic men's haircut\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/services",
+							"host": ["{{base_url}}"],
+							"path": ["api", "services"]
+						},
+						"description": "Create a new service for a barber.\n\n**Auth:** Barber or Admin\n\n**Body:**\n- `barberId` (string, required)\n- `name` (string, 2-100 chars, required)\n- `price` (number, min 0, required)\n- `duration` (number, min 1, in minutes, required)\n- `description` (string, max 500, optional)"
+					}
+				},
+				{
+					"name": "Update Service",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Premium Haircut\",\n    \"price\": 75000,\n    \"duration\": 45\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/services/{{service_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "services", "{{service_id}}"]
+						},
+						"description": "Update an existing service.\n\n**Auth:** Barber (own service) or Admin"
+					}
+				},
+				{
+					"name": "Delete Service",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/services/{{service_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "services", "{{service_id}}"]
+						},
+						"description": "Delete a service.\n\n**Auth:** Barber (own service) or Admin"
+					}
+				}
+			]
+		},
+		{
+			"name": "📅 Bookings",
+			"item": [
+				{
+					"name": "Get All Bookings (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/bookings",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings"]
+						},
+						"description": "Get all bookings in the system.\n\n**Auth:** Admin only"
+					}
+				},
+				{
+					"name": "Get My Bookings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/bookings/my",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings", "my"]
+						},
+						"description": "Get bookings for current user.\n- **Client:** sees own bookings\n- **Barber:** sees bookings for their profile\n- **Admin:** sees all bookings"
+					}
+				},
+				{
+					"name": "Create Booking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const res = pm.response.json();",
+									"    pm.collectionVariables.set('booking_id', res.data._id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"barberId\": \"{{barber_id}}\",\n    \"serviceId\": \"{{service_id}}\",\n    \"startTime\": \"2026-05-02T10:00:00.000Z\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/bookings",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings"]
+						},
+						"description": "Create a new booking.\n\n**Auth:** Client or Admin\n\n**Body:**\n- `barberId` (string, required)\n- `serviceId` (string, required)\n- `startTime` (ISO date string, required, must be in the future)\n\n**Validations:**\n- Barber must be verified\n- Service must belong to barber\n- Must be within working hours\n- No overlapping bookings"
+					}
+				},
+				{
+					"name": "Update Booking Status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"confirmed\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/bookings/{{booking_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings", "{{booking_id}}"]
+						},
+						"description": "Update booking status.\n\n**Status values:** `pending`, `confirmed`, `in_progress`, `completed`, `cancelled`\n\n**Permissions:**\n- **Client:** can only cancel own pending/confirmed bookings\n- **Barber:** can transition own bookings (pending→confirmed→in_progress→completed)\n- **Admin:** can change any status"
+					}
+				},
+				{
+					"name": "Delete Booking (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/bookings/{{booking_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings", "{{booking_id}}"]
+						},
+						"description": "Delete a booking. Admin only."
+					}
+				}
+			]
+		},
+		{
+			"name": "💰 Finance",
+			"item": [
+				{
+					"name": "Get Finance Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/finance/stats",
+							"host": ["{{base_url}}"],
+							"path": ["api", "finance", "stats"]
+						},
+						"description": "Get financial statistics.\n\n**Auth:** Barber or Admin\n\n**Returns:**\n- `todayRevenue`, `weeklyRevenue`, `totalRevenue`\n- `totalClients`, `todayBookings`, `completedBookings`\n- `expenses` (array), `totalExpenses`, `netProfit`"
+					}
+				},
+				{
+					"name": "Create Expense",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const res = pm.response.json();",
+									"    pm.collectionVariables.set('expense_id', res.data._id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"Scissors and tools\",\n    \"amount\": 150000,\n    \"date\": \"2026-05-01T00:00:00.000Z\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/finance/expense",
+							"host": ["{{base_url}}"],
+							"path": ["api", "finance", "expense"]
+						},
+						"description": "Create a new expense.\n\n**Auth:** Barber or Admin\n\n**Body:**\n- `description` (string, 2-200 chars, required)\n- `amount` (number, min 0, required)\n- `date` (ISO date, optional)\n- `barberId` (string, required for admin)"
+					}
+				},
+				{
+					"name": "Update Expense",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"Updated expense\",\n    \"amount\": 200000\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/finance/expense/{{expense_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "finance", "expense", "{{expense_id}}"]
+						},
+						"description": "Update an existing expense.\n\n**Auth:** Barber (own expense) or Admin"
+					}
+				},
+				{
+					"name": "Delete Expense",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/finance/expense/{{expense_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "finance", "expense", "{{expense_id}}"]
+						},
+						"description": "Delete an expense.\n\n**Auth:** Barber (own expense) or Admin"
+					}
+				}
+			]
+		},
+		{
+			"name": "🛡️ Admin",
+			"item": [
+				{
+					"name": "Get Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/dashboard",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "dashboard"]
+						},
+						"description": "Get admin dashboard statistics.\n\n**Auth:** Admin only\n\n**Returns:**\n- `totalUsers`, `totalBarbers`, `totalBookings`, `todayBookings`\n- `bookingStats` (pending, confirmed, completed, cancelled)\n- `recentBookings` (last 10)"
+					}
+				},
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users?role=client&page=1&limit=20",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users"],
+							"query": [
+								{ "key": "role", "value": "client", "description": "Filter by role: admin, barber, client" },
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "20" }
+							]
+						},
+						"description": "Get all users with optional filters.\n\n**Auth:** Admin only\n\n**Query params:**\n- `role` (optional) — filter: admin, barber, client\n- `page` (optional, default 1)\n- `limit` (optional, default 20)"
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"role\": \"barber\",\n    \"isBlocked\": false,\n    \"styleCoins\": 100\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users", "{{user_id}}"]
+						},
+						"description": "Update a user's details.\n\n**Auth:** Admin only\n\n**Body:**\n- `name` (string, optional)\n- `role` (string: admin/barber/client, optional)\n- `isBlocked` (boolean, optional)\n- `styleCoins` (number, optional)"
+					}
+				},
+				{
+					"name": "Verify Barber",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/verify/{{barber_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "verify", "{{barber_id}}"]
+						},
+						"description": "Verify a barber profile (enable for bookings).\n\n**Auth:** Admin only"
+					}
+				}
+			]
+		},
+		{
+			"name": "🤖 Chat (AI)",
+			"item": [
+				{
+					"name": "Send Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"Qaysi sartaroshlar bor?\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/chat",
+							"host": ["{{base_url}}"],
+							"path": ["api", "chat"]
+						},
+						"description": "Send a message to the AI assistant.\n\n**Auth:** Bearer token required\n\n**Body:**\n- `message` (string, 1-2000 chars, required)\n\n**Returns:**\n- `message` — AI response message\n- `proposedBookings` — booking proposals from AI\n- `recommendations` — AI recommendations"
+					}
+				}
+			]
+		},
+		{
+			"name": "📡 Stream (SSE)",
+			"item": [
+				{
+					"name": "Queue Stream",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/stream/queue",
+							"host": ["{{base_url}}"],
+							"path": ["api", "stream", "queue"]
+						},
+						"description": "Server-Sent Events (SSE) endpoint for real-time queue updates.\n\n**Auth:** Bearer token required\n\n**Note:** This is a streaming endpoint. In Postman, the response will remain open."
+					}
+				}
+			]
+		}
+	]
+}
