@@ -1,0 +1,423 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.pageTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--trim-text);
+  margin-bottom: 24px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--trim-border);
+  margin-bottom: 28px;
+}
+
+.tab {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--trim-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.tab:hover {
+  color: var(--trim-text);
+}
+
+.tabActive {
+  color: var(--trim-yellow);
+  border-bottom-color: var(--trim-yellow);
+}
+
+/* Queue Tab */
+.tableWrap {
+  background: var(--trim-surface);
+  border: 1px solid var(--trim-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--trim-text-muted);
+  background: var(--trim-bg);
+  border-bottom: 1px solid var(--trim-border);
+}
+
+.table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--trim-border);
+  font-size: 14px;
+  color: var(--trim-text);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.clientCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.miniAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--trim-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--trim-yellow);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.miniAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.monoText {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 13px;
+}
+
+.actionBtns {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.actionBtn {
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid;
+  transition: opacity 0.2s;
+}
+
+.actionBtn:hover {
+  opacity: 0.8;
+}
+
+.btnConfirm {
+  background: rgba(32, 157, 215, 0.1);
+  border-color: var(--trim-blue);
+  color: var(--trim-blue);
+}
+
+.btnProgress {
+  background: rgba(117, 57, 145, 0.1);
+  border-color: var(--trim-purple);
+  color: var(--trim-purple);
+}
+
+.btnComplete {
+  background: rgba(63, 185, 80, 0.1);
+  border-color: var(--trim-green);
+  color: var(--trim-green);
+}
+
+.btnCancel {
+  background: rgba(248, 81, 73, 0.1);
+  border-color: var(--trim-red);
+  color: var(--trim-red);
+}
+
+.emptyTable {
+  text-align: center;
+  padding: 48px;
+  color: var(--trim-text-muted);
+  font-size: 14px;
+}
+
+/* Finance Tab */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.statCard {
+  background: var(--trim-surface);
+  border: 1px solid var(--trim-border);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.statLabel {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--trim-text-muted);
+  margin-bottom: 8px;
+}
+
+.statValue {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--trim-green);
+}
+
+.financeSection {
+  background: var(--trim-surface);
+  border: 1px solid var(--trim-border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--trim-text);
+  margin-bottom: 16px;
+}
+
+.netProfitCard {
+  background: rgba(63, 185, 80, 0.1);
+  border: 1px solid rgba(63, 185, 80, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.netProfitLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--trim-green);
+}
+
+.netProfitValue {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--trim-green);
+}
+
+/* Expense form */
+.expenseForm {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--trim-text-muted);
+}
+
+.formInput {
+  background: var(--trim-bg);
+  border: 1px solid var(--trim-border);
+  border-radius: 6px;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--trim-text);
+  transition: border-color 0.2s;
+}
+
+.formInput:focus {
+  border-color: var(--trim-purple);
+  outline: none;
+}
+
+.addExpenseBtn {
+  padding: 9px 16px;
+  background: var(--trim-purple);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+
+.addExpenseBtn:hover {
+  opacity: 0.9;
+}
+
+.addExpenseBtn:disabled {
+  opacity: 0.5;
+}
+
+/* Services Tab */
+.servicesHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.addServiceForm {
+  background: var(--trim-bg);
+  border: 1px solid var(--trim-border);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.addServiceGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.addServiceActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.serviceCard {
+  background: var(--trim-surface);
+  border: 1px solid var(--trim-border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.serviceCardInfo {
+  flex: 1;
+}
+
+.serviceCardName {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--trim-text);
+  margin-bottom: 4px;
+}
+
+.serviceCardDesc {
+  font-size: 12px;
+  color: var(--trim-text-muted);
+}
+
+.serviceCardMeta {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.serviceCardPrice {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--trim-green);
+}
+
+.serviceCardDuration {
+  font-size: 12px;
+  color: var(--trim-text-muted);
+  font-family: 'Roboto Mono', monospace;
+}
+
+.serviceCardActions {
+  display: flex;
+  gap: 8px;
+}
+
+.deleteBtn {
+  padding: 6px 12px;
+  background: rgba(248, 81, 73, 0.1);
+  border: 1px solid rgba(248, 81, 73, 0.3);
+  color: var(--trim-red);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.deleteBtn:hover {
+  opacity: 0.8;
+}
+
+.editBtn {
+  padding: 6px 12px;
+  background: rgba(32, 157, 215, 0.1);
+  border: 1px solid rgba(32, 157, 215, 0.3);
+  color: var(--trim-blue);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.editBtn:hover {
+  opacity: 0.8;
+}
+
+.liveIndicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--trim-green);
+  margin-bottom: 16px;
+}
+
+.liveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--trim-green);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

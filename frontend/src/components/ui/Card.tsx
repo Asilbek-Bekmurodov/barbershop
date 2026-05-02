@@ -1,37 +1,29 @@
-import React from 'react';
+'use client';
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+import React from 'react';
+import styles from './Card.module.css';
+
+interface CardProps {
   children: React.ReactNode;
   className?: string;
   hoverable?: boolean;
-  padding?: 'none' | 'sm' | 'md' | 'lg';
+  onClick?: () => void;
 }
 
-const paddingClasses = {
-  none: '',
-  sm: 'p-3',
-  md: 'p-5',
-  lg: 'p-7',
-};
+const Card: React.FC<CardProps> = ({ children, className, hoverable, onClick }) => {
+  const classes = [
+    styles.card,
+    hoverable ? styles.hoverable : '',
+    className || '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
-export default function Card({
-  children,
-  className = '',
-  hoverable = false,
-  padding = 'md',
-  ...rest
-}: CardProps) {
   return (
-    <div
-      className={`
-        bg-[#161b22] border border-[#30363d] rounded-lg
-        ${hoverable ? 'hover:border-[#484f58] transition-colors duration-200 cursor-pointer' : ''}
-        ${paddingClasses[padding]}
-        ${className}
-      `}
-      {...rest}
-    >
+    <div className={classes} onClick={onClick}>
       {children}
     </div>
   );
-}
+};
+
+export default Card;

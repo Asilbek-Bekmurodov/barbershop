@@ -3,91 +3,106 @@ export interface User {
   name: string;
   email: string;
   role: 'admin' | 'barber' | 'client';
-  avatar?: string;
+  avatar: string;
   styleCoins: number;
-  createdAt?: string;
-}
-
-export interface WorkingHours {
-  start: string; // "08:00"
-  end: string; // "18:00"
+  isBlocked?: boolean;
 }
 
 export interface Barber {
-  id: string;
-  userId: string;
-  name: string;
-  avatar?: string;
-  bio?: string;
-  services: Service[];
-  workingHours: WorkingHours;
+  _id: string;
+  userId: { name: string; email: string; avatar: string };
+  bio: string;
+  workingHours: { start: string; end: string };
   rating: number;
-  reviewCount: number;
   isVerified: boolean;
-  isAvailable: boolean;
+  portfolio: string[];
 }
 
 export interface Service {
-  id: string;
+  _id: string;
   barberId: string;
   name: string;
-  description?: string;
   price: number;
-  duration: number; // minutes
+  duration: number;
+  description: string;
 }
-
-export type BookingStatus = 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
 
 export interface Booking {
-  id: string;
-  clientId: string;
-  clientName: string;
-  barberId: string;
-  barberName: string;
-  serviceId: string;
-  serviceName: string;
-  startTime: string; // ISO date string
+  _id: string;
+  clientId: { name: string; email: string; avatar: string };
+  barberId: { _id: string; userId: { name: string; avatar: string } };
+  serviceId: { name: string; price: number; duration: number };
+  startTime: string;
   endTime: string;
-  status: BookingStatus;
-  styleCoinsEarned: number;
-  price: number;
-  notes?: string;
-  createdAt: string;
-}
-
-export interface TimeSlot {
-  time: string; // "08:00"
-  isAvailable: boolean;
-  booking?: {
-    clientName: string;
-    serviceName: string;
-  };
-}
-
-export interface FinanceStats {
-  totalRevenue: number;
-  dailyRevenue: number;
-  weeklyRevenue: number;
-  monthlyRevenue: number;
-  totalBookings: number;
-  completedBookings: number;
-  cancelledBookings: number;
-  averageRating: number;
-  styleCoinsIssued: number;
-  topService: string;
-  growthRate: number;
+  status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
+  styleCoinEarned: number;
 }
 
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  timestamp: string;
+  timestamp: Date;
+  bookings?: BookingAction[];
+  recommendations?: Recommendation[];
 }
 
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message?: string;
-  error?: string;
+export interface BookingAction {
+  barber_id: string;
+  action: string;
+  time: string;
+  service_name: string;
+}
+
+export interface Recommendation {
+  style: string;
+  reason: string;
+}
+
+export interface FinanceStats {
+  todayRevenue: number;
+  weeklyRevenue: number;
+  totalRevenue: number;
+  totalClients: number;
+  todayBookings: number;
+  completedBookings: number;
+  expenses: Expense[];
+  totalExpenses: number;
+  netProfit: number;
+}
+
+export interface Expense {
+  _id: string;
+  description: string;
+  amount: number;
+  date: string;
+}
+
+export interface AdminDashboard {
+  totalUsers: number;
+  totalBarbers: number;
+  totalBookings: number;
+  todayBookings: number;
+  bookingStats: {
+    pending: number;
+    confirmed: number;
+    completed: number;
+    cancelled: number;
+  };
+  recentBookings: Booking[];
+}
+
+export interface AdminUser {
+  _id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'barber' | 'client';
+  avatar: string;
+  styleCoins: number;
+  isBlocked: boolean;
+  barberId?: string;
+  barberInfo?: {
+    _id: string;
+    isVerified: boolean;
+  };
 }

@@ -1,0 +1,250 @@
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.pageTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--trim-text);
+  margin-bottom: 24px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.profileCard {
+  background: var(--trim-surface);
+  border: 1px solid var(--trim-border);
+  border-radius: 12px;
+  padding: 28px 24px;
+}
+
+.avatarWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--trim-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--trim-yellow);
+  overflow: hidden;
+  border: 2px solid var(--trim-border);
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.userName {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--trim-text);
+  text-align: center;
+}
+
+.userEmail {
+  font-size: 13px;
+  color: var(--trim-text-muted);
+  text-align: center;
+}
+
+.coinsCard {
+  background: rgba(236, 173, 10, 0.08);
+  border: 1px solid rgba(236, 173, 10, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.coinsLabel {
+  font-size: 13px;
+  color: var(--trim-text-muted);
+}
+
+.coinsValue {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--trim-yellow);
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--trim-text-muted);
+}
+
+.formInput {
+  background: var(--trim-bg);
+  border: 1px solid var(--trim-border);
+  border-radius: 6px;
+  padding: 9px 12px;
+  font-size: 14px;
+  color: var(--trim-text);
+  transition: border-color 0.2s;
+}
+
+.formInput:focus {
+  border-color: var(--trim-purple);
+  outline: none;
+}
+
+.saveBtn {
+  background: var(--trim-purple);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.saveBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+}
+
+.successMsg {
+  font-size: 13px;
+  color: var(--trim-green);
+  text-align: center;
+}
+
+.bookingsSection {
+  background: var(--trim-surface);
+  border: 1px solid var(--trim-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.bookingsTabs {
+  display: flex;
+  border-bottom: 1px solid var(--trim-border);
+}
+
+.bookingsTab {
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--trim-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.2s;
+}
+
+.bookingsTab:hover {
+  color: var(--trim-text);
+}
+
+.bookingsTabActive {
+  color: var(--trim-yellow);
+  border-bottom-color: var(--trim-yellow);
+}
+
+.bookingsList {
+  padding: 0;
+}
+
+.bookingItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--trim-border);
+  gap: 16px;
+}
+
+.bookingItem:last-child {
+  border-bottom: none;
+}
+
+.bookingLeft {
+  flex: 1;
+}
+
+.bookingService {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--trim-text);
+  margin-bottom: 4px;
+}
+
+.bookingBarber {
+  font-size: 12px;
+  color: var(--trim-text-muted);
+  margin-bottom: 4px;
+}
+
+.bookingTime {
+  font-size: 12px;
+  font-family: 'Roboto Mono', monospace;
+  color: var(--trim-text-muted);
+}
+
+.bookingRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.bookingPrice {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--trim-green);
+}
+
+.emptyBookings {
+  text-align: center;
+  padding: 40px;
+  color: var(--trim-text-muted);
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

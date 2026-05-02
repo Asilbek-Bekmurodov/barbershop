@@ -128,3 +128,5 @@ Backend: `.env` — `.env.example` fayliga qarang
 - [x] Backend: MongoDB models (User, Barber, Service, Booking, ChatMessage, Expense)
 - [x] Backend: JWT auth middleware, Google OAuth (Passport), DB seeder
 - [x] Build: `npm run build` — 10/10 sahifa xatosiz
+
+

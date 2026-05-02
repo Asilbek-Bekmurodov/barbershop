@@ -46,25 +46,47 @@ const getBarberById = async (req, res) => {
 
 const createBarber = async (req, res) => {
   try {
-    const { error, value } = createBarberSchema.validate(req.body);
+    // Client o'zi barber bo'lsa, userId req.user._id dan olinadi
+    const targetUserId = req.user.role === 'admin' ? req.body.userId : req.user._id.toString();
+
+    const schemaToValidate = req.user.role === 'admin'
+      ? createBarberSchema
+      : createBarberSchema.fork(['userId'], (s) => s.optional());
+
+    const { error, value } = schemaToValidate.validate({ ...req.body, userId: targetUserId });
     if (error) {
       return res.status(400).json({ success: false, message: error.details[0].message });
     }
 
-    const userExists = await User.findById(value.userId);
+    const userExists = await User.findById(targetUserId);
     if (!userExists) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    const existingBarber = await Barber.findOne({ userId: value.userId });
+    const existingBarber = await Barber.findOne({ userId: targetUserId });
     if (existingBarber) {
       return res.status(400).json({ success: false, message: 'Barber profile already exists for this user' });
     }
 
-    const barber = await Barber.create(value);
-    await User.findByIdAndUpdate(value.userId, { role: 'barber' });
+    const barber = await Barber.create({ ...value, userId: targetUserId });
+    const updatedUser = await User.findByIdAndUpdate(
+      targetUserId,
+      { role: 'barber' },
+      { new: true }
+    );
 
-    return res.status(201).json({ success: true, data: barber });
+    return res.status(201).json({
+      success: true,
+      data: barber,
+      user: updatedUser ? {
+        id: updatedUser._id.toString(),
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        avatar: updatedUser.avatar,
+        styleCoins: updatedUser.styleCoins,
+      } : null,
+    });
   } catch (error) {
     console.error('CreateBarber error:', error);
     return res.status(500).json({ success: false, message: 'Server error' });

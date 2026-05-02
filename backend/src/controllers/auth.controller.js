@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
 const User = require('../models/User');
+const Barber = require('../models/Barber');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -21,6 +22,7 @@ const registerSchema = Joi.object({
   name: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
+  role: Joi.string().valid('client', 'barber').default('client'),
 });
 
 const loginSchema = Joi.object({
@@ -38,7 +40,7 @@ const register = async (req, res) => {
       });
     }
 
-    const { name, email, password } = value;
+    const { name, email, password, role } = value;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -49,6 +51,13 @@ const register = async (req, res) => {
     }
 
     const user = await User.create({ name, email, password, role: 'client' });
+
+    // If registering as barber, create barber profile and update role
+    if (role === 'barber') {
+      await Barber.create({ userId: user._id });
+      user.role = 'barber';
+      await User.findByIdAndUpdate(user._id, { role: 'barber' });
+    }
 
     const token = generateToken(user._id);
 

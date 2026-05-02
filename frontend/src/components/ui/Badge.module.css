@@ -1,0 +1,60 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pending {
+  background: rgba(236, 173, 10, 0.15);
+  color: var(--trim-yellow);
+}
+
+.confirmed {
+  background: rgba(32, 157, 215, 0.15);
+  color: var(--trim-blue);
+}
+
+.in_progress {
+  background: rgba(117, 57, 145, 0.15);
+  color: var(--trim-purple);
+}
+
+.completed {
+  background: rgba(63, 185, 80, 0.15);
+  color: var(--trim-green);
+}
+
+.cancelled {
+  background: rgba(248, 81, 73, 0.15);
+  color: var(--trim-red);
+}
+
+.verified {
+  background: rgba(63, 185, 80, 0.15);
+  color: var(--trim-green);
+}
+
+.unverified {
+  background: rgba(139, 148, 158, 0.15);
+  color: var(--trim-text-muted);
+}
+
+.admin {
+  background: rgba(248, 81, 73, 0.15);
+  color: var(--trim-red);
+}
+
+.barber {
+  background: rgba(117, 57, 145, 0.15);
+  color: var(--trim-purple);
+}
+
+.client {
+  background: rgba(32, 157, 215, 0.15);
+  color: var(--trim-blue);
+}

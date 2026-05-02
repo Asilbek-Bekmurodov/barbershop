@@ -1,87 +1,101 @@
 'use client';
 
-import React from 'react';
-import { TimeSlot } from '@/types';
+import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
+import styles from './TimeSlotGrid.module.css';
 
 interface TimeSlotGridProps {
-  slots: TimeSlot[];
-  onSelect?: (slot: TimeSlot) => void;
-  readOnly?: boolean;
-  selectedSlot?: string | null;
+  barberId: string;
+  selectedDate: string;
+  selectedSlot: string | null;
+  onSelectSlot: (slot: string) => void;
+  serviceDuration?: number;
 }
 
-export default function TimeSlotGrid({
-  slots,
-  onSelect,
-  readOnly = false,
-  selectedSlot = null,
-}: TimeSlotGridProps) {
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
+const SLOTS = [
+  '08:00', '09:00', '10:00', '11:00', '12:00',
+  '13:00', '14:00', '15:00', '16:00', '17:00',
+];
 
-  const isCurrentSlot = (time: string) => {
-    const [h] = time.split(':').map(Number);
-    return h === currentHour;
-  };
+const TimeSlotGrid: React.FC<TimeSlotGridProps> = ({
+  barberId,
+  selectedDate,
+  selectedSlot,
+  onSelectSlot,
+  serviceDuration = 60,
+}) => {
+  const { myBookings } = useSelector((state: RootState) => state.booking);
+  const [bookedSlots, setBookedSlots] = useState<Set<string>>(new Set());
 
-  const isPastSlot = (time: string) => {
-    const [h] = time.split(':').map(Number);
-    return h < currentHour || (h === currentHour && currentMinute > 50);
-  };
+  useEffect(() => {
+    if (!selectedDate || !barberId) return;
 
-  const getSlotClasses = (slot: TimeSlot) => {
-    const base =
-      'relative flex flex-col items-center justify-center h-16 rounded-lg border text-xs mono transition-all duration-200 ';
+    const booked = new Set<string>();
 
-    if (selectedSlot === slot.time) {
-      return base + 'bg-[#ecad0a]/20 border-[#ecad0a] text-[#ecad0a] ring-1 ring-[#ecad0a]';
-    }
-    if (isCurrentSlot(slot.time)) {
-      return (
-        base +
-        'border-[#3fb950] bg-[#3fb950]/10 text-[#3fb950] ' +
-        (!readOnly && slot.isAvailable ? 'cursor-pointer hover:bg-[#3fb950]/20' : '')
-      );
-    }
-    if (!slot.isAvailable) {
-      return base + 'bg-[#30363d]/60 border-[#30363d] text-[#484f58] cursor-not-allowed';
-    }
-    if (isPastSlot(slot.time)) {
-      return base + 'bg-transparent border-[#21262d] text-[#484f58] cursor-not-allowed opacity-50';
-    }
-    return (
-      base +
-      'bg-transparent border-[#209dd7]/40 text-[#209dd7] ' +
-      (!readOnly ? 'cursor-pointer hover:bg-[#209dd7]/10 hover:border-[#209dd7]' : '')
-    );
-  };
+    myBookings.forEach((booking) => {
+      if (
+        booking.barberId?._id === barberId &&
+        (booking.status === 'pending' ||
+          booking.status === 'confirmed' ||
+          booking.status === 'in_progress')
+      ) {
+        const startDate = new Date(booking.startTime);
+        const bookingDate = startDate.toISOString().split('T')[0];
+        if (bookingDate === selectedDate) {
+          const hour = startDate.getHours().toString().padStart(2, '0');
+          const minute = startDate.getMinutes().toString().padStart(2, '0');
+          booked.add(`${hour}:${minute}`);
+        }
+      }
+    });
+
+    setBookedSlots(booked);
+  }, [myBookings, barberId, selectedDate]);
+
+  const isSlotBooked = (slot: string) => bookedSlots.has(slot);
 
   return (
-    <div className="grid grid-cols-5 gap-2">
-      {slots.map((slot) => (
-        <button
-          key={slot.time}
-          disabled={readOnly || !slot.isAvailable || isPastSlot(slot.time)}
-          onClick={() => !readOnly && slot.isAvailable && onSelect?.(slot)}
-          className={getSlotClasses(slot)}
-          title={slot.booking ? `${slot.booking.clientName} — ${slot.booking.serviceName}` : undefined}
-        >
-          {isCurrentSlot(slot.time) && (
-            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#3fb950] animate-pulse" />
-          )}
-          <span className="font-bold">{slot.time}</span>
-          {slot.booking ? (
-            <span className="text-[10px] text-[#8b949e] mt-0.5 truncate max-w-full px-1">
-              {slot.booking.clientName}
-            </span>
-          ) : slot.isAvailable && !isPastSlot(slot.time) ? (
-            <span className="text-[10px] mt-0.5 opacity-70">Bo'sh</span>
-          ) : (
-            <span className="text-[10px] mt-0.5 opacity-40">—</span>
-          )}
-        </button>
-      ))}
+    <div className={styles.wrapper}>
+      <div className={styles.title}>Vaqt tanlang</div>
+      <div className={styles.grid}>
+        {SLOTS.map((slot) => {
+          const booked = isSlotBooked(slot);
+          const selected = selectedSlot === slot;
+          return (
+            <button
+              key={slot}
+              className={[
+                styles.slot,
+                booked ? styles.slotBooked : styles.slotAvailable,
+                selected && !booked ? styles.slotSelected : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              disabled={booked}
+              onClick={() => !booked && onSelectSlot(slot)}
+            >
+              {slot}
+            </button>
+          );
+        })}
+      </div>
+      <div className={styles.legend}>
+        <div className={styles.legendItem}>
+          <div className={[styles.legendDot, styles.legendDotAvailable].join(' ')} />
+          <span>Bo&apos;sh</span>
+        </div>
+        <div className={styles.legendItem}>
+          <div className={[styles.legendDot, styles.legendDotSelected].join(' ')} />
+          <span>Tanlangan</span>
+        </div>
+        <div className={styles.legendItem}>
+          <div className={[styles.legendDot, styles.legendDotBooked].join(' ')} />
+          <span>Band</span>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default TimeSlotGrid;

@@ -1,0 +1,214 @@
+.container {
+  min-height: 100vh;
+  background: var(--trim-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.card {
+  background: var(--trim-surface);
+  border: 1px solid var(--trim-border);
+  border-radius: 12px;
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.logoWrap {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.logo {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--trim-yellow);
+  text-decoration: none;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--trim-text);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--trim-text-muted);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.errorBox {
+  background: rgba(248, 81, 73, 0.1);
+  border: 1px solid rgba(248, 81, 73, 0.3);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--trim-red);
+  margin-bottom: 16px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--trim-text-muted);
+}
+
+.input {
+  background: var(--trim-bg);
+  border: 1px solid var(--trim-border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--trim-text);
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: var(--trim-purple);
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--trim-text-muted);
+}
+
+.submitBtn {
+  background: var(--trim-purple);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-top: 4px;
+}
+
+.submitBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: var(--trim-text-muted);
+  font-size: 13px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--trim-border);
+}
+
+.googleBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid var(--trim-border);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--trim-text);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.googleBtn:hover {
+  background: var(--trim-bg);
+  border-color: var(--trim-blue);
+}
+
+.googleIcon {
+  font-weight: 700;
+  color: var(--trim-blue);
+  font-size: 16px;
+}
+
+.switchLink {
+  text-align: center;
+  font-size: 13px;
+  color: var(--trim-text-muted);
+  margin-top: 20px;
+}
+
+.link {
+  color: var(--trim-purple);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.rolePicker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.roleCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 10px;
+  background: var(--trim-bg);
+  border: 2px solid var(--trim-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--trim-text-muted);
+}
+
+.roleCard:hover {
+  border-color: var(--trim-purple);
+  color: var(--trim-text);
+}
+
+.roleCardActive {
+  border-color: var(--trim-purple);
+  background: rgba(117, 57, 145, 0.1);
+  color: var(--trim-text);
+}
+
+.roleCardIcon {
+  font-size: 22px;
+}

@@ -224,7 +224,7 @@ bookings va coin_transactions massivlari faqat zarur bo'lganda to'ldirilsin.`;
     return res.status(200).json({
       success: true,
       data: {
-        message: assistantMsg,
+        message: reply,
         createdBookings: [],
         proposedBookings,
         recommendations,
